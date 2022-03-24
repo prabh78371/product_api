@@ -6,9 +6,10 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializer import productserializer
 from .models import Product
+from rest_framework import status
 
 # Create your views here.
-@api_view(['GET','POST','PUT','DELETE'])
+@api_view(['GET','POST','PUT','PATCH','DELETE'])
 def product_api(request,pk=None):
     if request.method ==  'GET':
         id = pk
@@ -21,26 +22,37 @@ def product_api(request,pk=None):
         return Response(serilizer.data)
 
     if request.method == 'POST':
-        serilizer = productserializer(data=request.data)
+        serilizer = productserializer(data = request.data)
         if serilizer.is_valid():
             serilizer.save()
-            return Response({'msg':'created'})
-        return Response(serilizer.errors)
+            return Response(serilizer.data,status = status.HTTP_201_CREATED)
+        return Response(serilizer.errors,status = status.HTTP_400_BAD_REQUEST)
     
     if request.method == 'PUT':
         id = pk
         prod = Product.objects.get(pk=id)
-        serilizer = productserializer(prod,data = request.data ,partial =True )
+        serilizer = productserializer(prod,data = request.data )
         if serilizer.is_valid():
             serilizer.save()
-            return Response({'msg':'updated'})
-        return Response(serilizer.errors)  
+            return Response(serilizer.data,status=status.HTTP_201_CREATED)
+        return Response(serilizer.errors,status=status.HTTP_400_BAD_REQUEST)  
+
+    if request.method == 'PATCH':
+        id = pk
+        prod = Product.objects.get(pk=id)
+        serilizer = productserializer(prod,data = request.data,partial =True )
+        if serilizer.is_valid():
+            serilizer.save()
+            return Response(serilizer.data,status=status.HTTP_201_CREATED)
+        return Response(serilizer.errors,status=status.HTTP_400_BAD_REQUEST)  
+
+
 
     if request.method == 'DELETE':
         id = pk
         prod = Product.objects.get(pk=id)
         prod.delete()
-        return Response({'msg':'deleted'})
+        return Response({})
     
 
 
